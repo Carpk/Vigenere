@@ -2,7 +2,7 @@
  * Program 2: Vigenere
  *
  * Class: CS 141, Spring 2020. Tue 4pm lab
- * System: CLion on Windows 10 & CLion on Mac
+ * System: CLion on Windows 10
  * Author: Shawn Klein
  * ---------------------------------------------------------
  */
@@ -31,9 +31,7 @@ int dictCount() {
     ifstream dictFile("dictionary.txt");
     for (string line; getline(dictFile, line);) {
         if (line.at(line.size()-1) < 97 ) { line.replace(line.size()-1, 1,"" ); }
-        if (line.size() >= 3) {
-            wordCount++;
-        }
+        if (line.size() >= 3) { wordCount++; }
     }
     cout << wordCount << " words of size >= 3 were read in from dictionary. "<<' '<<"\n" << endl << endl;
 }
@@ -41,39 +39,31 @@ int dictCount() {
 bool dictLookup(string str) {
     bool isFound = false;
     ifstream dictFile("dictionary.txt");
-    //str.erase(std::remove(str.begin(), str.end(), '\n'), str.end());
-    str.resize(remove_if(str.begin(), str.end(),[](char x){return !isalnum(x) && !isspace(x);})-str.begin());
+    //str.resize(remove_if(str.begin(), str.end(),[](char x){return !isalnum(x) && !isspace(x);})-str.begin());
     if (str.at(0) < 97 ) { str.replace(0, 1,"" ); }
     if (str.at(str.size()-1) < 97 ) { str.replace(str.size()-1, 1,"" ); }
     string line;
+
     for (line; getline(dictFile, line);) {
-        //int foo = strcmp(str.c_str(), line);
-        if (strcmp(line.c_str(), str.c_str()) == 0 ) {isFound = true;}
+        line.erase(line.size() - 1);
+        if (strcmp(line.c_str(), str.c_str()) == 0 ) {isFound = true; break;}
     }
     return isFound;
 }
 
 
-bool bookLookup(string str) {
-    bool isFound = false;
-    ifstream dictFile("dictionary.txt");
-    for (string line; getline(dictFile, line);) {
-        if (line == str) {isFound = true;}
-    }
-
-    return isFound;
-}
 
 string encodeText(string toEncode, string keyword) {
     int eChar;
     int keyLen = 6;
     string decoded;
     for (unsigned i = 0; i < toEncode.size(); i++) {
-        if ((toEncode[i] > 96) && (toEncode[i] < 123)) {
+        int toEncChar = toEncode[i];
+        if ((toEncode[i] > 64) && (toEncode[i] < 123)) {
             eChar = 97 + ((toEncode[i] + keyword[i % keyLen]) - 194) % 26;
             toEncode[i] = eChar;
         } else {
-            toEncode[i] = ' ';
+            //toEncode[i] = ' ';
         }
     }
     return toEncode;
@@ -85,7 +75,7 @@ string sanitizeText(string str) {
             str[i] = ' ';
         }
     }
-    str.erase(std::remove(str.begin(), str.end(), '\n'), str.end());
+    str.erase(remove(str.begin(), str.end(), '\n'), str.end());
     return str;
 }
 
@@ -95,25 +85,26 @@ int main() {
     string userInput;
     string toEncode;
     string keyword;
-    char output[100];
+    char output[100]  = "procrastinate";
 
     dictCount();
 
     //choicesPrompt();
     //cin >> menuOption;
     //returnCharacter =
-    cin.get(output,100);
-    menuOption = 2;
+    //cin.get(output,100);
+    menuOption = 1;
 
-
+   //cout << "A is: " << int('A') << endl;
 
     switch( menuOption) {
         case 1: // Do dictionary lookup of a word and indicate whether or not it was found.
             cout << "Enter a word to be looked up in dictionary: ";
             //cin >> userInput;
-            userInput  = "procrastinate";
+            //output[]  = "procrastinate"; // 13
+            //cout << strlen(userInput.c_str());
             //userInput = "kats";
-            cout << userInput << (dictLookup(userInput)? " IS ":" is NOT ")  << "in the dictionary." << endl;
+            cout << userInput << (dictLookup(output)? " IS ":" is NOT ")  << "in the dictionary." << endl;
             break;
         case 2: // Encode some text
             cout << "Enter the text to be encoded: ";
@@ -160,6 +151,15 @@ cout <<' '<< eChar << ' ';
 toEncode[i] = eChar;
 cout << toEncode[i] << endl;
 
+
+
+
+
+
+
+         if (line[0]=='p' & line[4]=='r' & line[12]=='e' ){
+            cout << "found the word: " << line << " vlaue: " << strcmp(line.c_str(), str.c_str()) << endl;
+        }
 
 
 
