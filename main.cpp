@@ -64,21 +64,29 @@ bool bookLookup(string str) {
     return isFound;
 }
 
-string encodeText(string* toEncodePtr, string keyword) {
+string encodeText(string toEncode, string keyword) {
     int eChar;
     int keyLen = 6;
     string decoded;
-    string toEncode = *toEncodePtr;
     for (unsigned i = 0; i < toEncode.size(); i++) {
-        if (toEncode[i] > 96 && toEncode[i] < 123) {
+        if ((toEncode[i] > 96) && (toEncode[i] < 123)) {
             eChar = 97 + ((toEncode[i] + keyword[i % keyLen]) - 194) % 26;
-            decoded[i] = eChar;
+            toEncode[i] = eChar;
         } else {
-            decoded[i] = ' ';
-            toEncodePtr[i] = '-';
+            toEncode[i] = ' ';
         }
     }
-    return decoded;
+    return toEncode;
+}
+
+string sanitizeText(string str) {
+    for (unsigned i = 0; i < str.size(); i++) {
+        if ((str[i] < 97) | (str[i] > 122)) {
+            str[i] = ' ';
+        }
+    }
+    str.erase(std::remove(str.begin(), str.end(), '\n'), str.end());
+    return str;
 }
 
 int main() {
@@ -93,8 +101,9 @@ int main() {
 
     //choicesPrompt();
     //cin >> menuOption;
-    //returnCharacter = cin.get();
-    menuOption = 1;
+    //returnCharacter =
+    cin.get(output,100);
+    menuOption = 2;
 
 
 
@@ -108,14 +117,15 @@ int main() {
             break;
         case 2: // Encode some text
             cout << "Enter the text to be encoded: ";
-            //cin >> toEncode;
+            //cin.get(output,100);
             toEncode = "all generalizations are false";
             cout << "Enter a keyword for Vigenere encryption: ";
             //cin >> keyword;
             keyword =  "secret";
+            toEncode = sanitizeText(toEncode);
             cout << "Keyword, plainText and ciphertext are:  \n";
             for (unsigned i = 0; i < toEncode.size(); i++) {cout << keyword[i%6];}
-            cout << endl << toEncode << "\n" << encodeText(&toEncode, keyword) << endl;
+            cout << endl << toEncode << "\n" << encodeText(toEncode, keyword) << endl;
             break;
         case 3: // Decode using user-entered values
             cout << "Enter the cipherText to be decoded: ";
