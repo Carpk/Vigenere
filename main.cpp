@@ -13,6 +13,7 @@
 #include <algorithm>
 #include <cstring>
 #include <sstream>
+#include <set>
 
 using namespace std;
 
@@ -25,6 +26,16 @@ void choicesPrompt() {
          << "    4. Auto-decode the ciphertext given with the assignment  \n"
          << "    5. Exit program  \n"
          << "Your choice: ";
+}
+
+string sanitizeText(string str) {
+    for (unsigned i = 0; i < str.size(); i++) {
+        if ((str[i] < 97) | (str[i] > 122)) {
+            str[i] = ' ';
+        }
+    }
+    str.erase(remove(str.begin(), str.end(), '\n'), str.end());
+    return str;
 }
 
 int dictCount() {
@@ -102,22 +113,48 @@ string decodeText(string toDecode, string keyword) {
     return toDecode;
 }
 
+
+void loadDict(set<string>& dictArray) {
+    ifstream inStream;
+    inStream.open( "dictionary.txt");
+    if( !inStream.is_open()) {cout << "Could not find dictionary.txt.  Exiting..." << endl; exit( -1);}
+
+    char dictWord[ 81];
+    while( inStream >> dictWord) {dictArray.push_back(dictWord);}
+    inStream.close();
+}
+
+bool binarySearchDict(list<string>& dictArray, string word) {
+    int low, mid, high;
+    cout << "in array: " << dictArray[18437] << endl;
+
+
+
+}
+
+
 string autoDecode(string text) {
     int lineNum =0;
-    ifstream dictFile("TheSecretAgentByJosephConrad.txt");
-    for (string line; getline(dictFile, line);) {
+    int bestWordCount = 1;
+    string bestDecodedText;
+    string possibleKey;
+    string decodedText;
+    set<string> dictArray;
+    loadDict(dictArray);
+
+    ifstream nomenclator("TheSecretAgentByJosephConrad.txt");
+    for (string line; getline(nomenclator, line);) {
         stringstream lineStream(line);
-        string possibleKey;
-        string decodedText;
-        int bestWordCount;
-        string bestDecodedText;
+
         while (lineStream >> possibleKey) {
+            //possibleKey = sanitizeText(possibleKey);
             decodedText = decodeText(text, possibleKey);
             string decodedWord;
             int validWordCount = 0;
             stringstream decodedStream(decodedText);
             while (decodedStream >> decodedWord) {
-                if (dictLookup(decodedWord)) {validWordCount++;}
+                if (binarySearchDict(dictArray, decodedWord)) {validWordCount++;}
+                //if (dictLookup(decodedWord)) {validWordCount++;}
             }
 
             if (validWordCount >= bestWordCount) {
@@ -128,20 +165,12 @@ string autoDecode(string text) {
             }
 
         }
-        cout << lineNum++ << endl;
+        if (++lineNum % 200 == 0) {cout << lineNum << endl;}
     }
 
 }
 
-string sanitizeText(string str) {
-    for (unsigned i = 0; i < str.size(); i++) {
-        if ((str[i] < 97) | (str[i] > 122)) {
-            str[i] = ' ';
-        }
-    }
-    str.erase(remove(str.begin(), str.end(), '\n'), str.end());
-    return str;
-}
+
 
 int main() {
     int menuOption = 0;
@@ -198,7 +227,8 @@ int main() {
             break;
         case 4: // Decode ciphertext given with the assignment
             cout << "Enter the cipherText to be decoded: ";
-            toDecode = "spn kxfitrpbrevzsgk cii xenji";
+            toDecode = "uev os hnocax xia lxn";
+            //toDecode = "nol ycwh io ffpllhg uenmvi ihv qmdprlieg: zcfnd lfkt pqwayhz ib ofl.db/dgiaoy13";
 
             autoDecode(toDecode);
 
