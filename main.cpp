@@ -12,6 +12,7 @@
 #include <string>
 #include <algorithm>
 #include <cstring>
+#include <sstream>
 
 using namespace std;
 
@@ -51,12 +52,23 @@ bool dictLookup(string str) {
     return isFound;
 }
 
+int validWordCount(string text) {
+    string word;
+    int validCount = 0;
+    stringstream iss(text);
+    while (iss >> word) {
+        if (dictLookup(word)) {
+            validCount++;
+        }
+    }
 
+    return validCount;
+}
 
 string encodeText(string toEncode, string keyword) {
     int eChar;
-    int keyLen = 6;
-    string decoded;
+    int keyLen = keyword.size();
+
     for (unsigned i = 0; i < toEncode.size(); i++) {
         int toEncChar = toEncode[i];
         if ((toEncode[i] > 64) && (toEncode[i] < 123)) {
@@ -67,6 +79,58 @@ string encodeText(string toEncode, string keyword) {
         }
     }
     return toEncode;
+}
+
+string decodeText(string toDecode, string keyword) {
+    int eChar;
+    int keyLen = keyword.size();
+
+    for (unsigned i = 0; i < toDecode.size(); i++) {
+        if ((toDecode[i] > 64) && (toDecode[i] < 123)) {
+            int decodeChar = tolower(toDecode[i]);
+            int keywordChar = tolower(keyword[i % keyLen]);
+
+            if (keywordChar > decodeChar) {
+                eChar = 'z' - keywordChar + decodeChar + 1;
+            } else {
+                eChar = 97 + (decodeChar - keywordChar);
+            }
+
+            toDecode[i] = eChar;
+        }
+    }
+    return toDecode;
+}
+
+string autoDecode(string text) {
+    int lineNum =0;
+    ifstream dictFile("TheSecretAgentByJosephConrad.txt");
+    for (string line; getline(dictFile, line);) {
+        stringstream lineStream(line);
+        string possibleKey;
+        string decodedText;
+        int bestWordCount;
+        string bestDecodedText;
+        while (lineStream >> possibleKey) {
+            decodedText = decodeText(text, possibleKey);
+            string decodedWord;
+            int validWordCount = 0;
+            stringstream decodedStream(decodedText);
+            while (decodedStream >> decodedWord) {
+                if (dictLookup(decodedWord)) {validWordCount++;}
+            }
+
+            if (validWordCount >= bestWordCount) {
+                bestWordCount = validWordCount;
+                bestDecodedText = decodedText;
+                cout << validWordCount << " words found using keyword: " << possibleKey << " giving:" << endl;
+                cout << decodedText << endl;
+            }
+
+        }
+        cout << lineNum++ << endl;
+    }
+
 }
 
 string sanitizeText(string str) {
@@ -84,6 +148,8 @@ int main() {
     char returnCharacter;
     string userInput;
     string toEncode;
+    string toDecode;
+    string decodedText;
     string keyword;
     char output[100]  = "procrastinate";
 
@@ -93,7 +159,7 @@ int main() {
     //cin >> menuOption;
     //returnCharacter =
     //cin.get(output,100);
-    menuOption = 1;
+    menuOption = 4;
 
    //cout << "A is: " << int('A') << endl;
 
@@ -120,10 +186,22 @@ int main() {
             break;
         case 3: // Decode using user-entered values
             cout << "Enter the cipherText to be decoded: ";
+            toDecode = "spn kxfitrpbrevzsgk cii xenji";
             cout << "Enter a Vigenere keyword to be tried: ";
+            keyword =  "secret";
+            cout << endl;
+
+            decodedText = decodeText(toDecode, keyword);
+            cout << validWordCount(decodedText) << " found using keyword: " << keyword << " giving:" << endl;
+
+            cout << decodedText << endl;
             break;
         case 4: // Decode ciphertext given with the assignment
             cout << "Enter the cipherText to be decoded: ";
+            toDecode = "spn kxfitrpbrevzsgk cii xenji";
+
+            autoDecode(toDecode);
+
             break;
         case 5: // exit program
             cout << "Exiting program" << endl;
@@ -144,6 +222,20 @@ int main() {
 
 
 /*
+
+ //cout << "j: " << int('j') << " r: " << int('r') << " n: " << int('n') << " z: " << int('z') << endl;
+
+
+ eChar = 97 + ((toDecode[i] - keyword[i % keyLen]));
+            if (eChar < 97) {
+                //eChar = 97 + (keyword[i % keyLen] - toDecode[i]);
+                //int shiftKey = toDecode[i] - 'a';
+                //eChar = 97 + ((toDecode[i] - keyword[i % keyLen])) + shiftKey;
+                //cout << "char: " << char(eChar) << eChar << " shift: " << shiftKey << endl;
+            }
+
+
+
 
 cout << toEncode[i] << " keyword modo: " << (toEncode[i] + keyword[i % keyLen]);
 eChar = 97 + ((toEncode[i] + keyword[i % keyLen])-194) % 26;
