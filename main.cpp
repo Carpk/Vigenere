@@ -13,7 +13,6 @@
 #include <algorithm>
 #include <cstring>
 #include <sstream>
-#include <set>
 
 using namespace std;
 
@@ -114,33 +113,45 @@ string decodeText(string toDecode, string keyword) {
 }
 
 
-void loadDict(set<string>& dictArray) {
+void loadDict(char* dictArray[21800][81]) {
     ifstream inStream;
+    char ndictArray[10000][81];
+    int i = 0;
     inStream.open( "dictionary.txt");
     if( !inStream.is_open()) {cout << "Could not find dictionary.txt.  Exiting..." << endl; exit( -1);}
 
-    char dictWord[ 81];
-    while( inStream >> dictWord) {dictArray.push_back(dictWord);}
+    string dictWord;
+    while( inStream >> dictWord) {
+        //dictWord.c_str() >> (ndictArray)[i];
+        //(*dictArray)[i] = dictWord;
+        strcpy(ndictArray[i], dictWord.c_str());
+        i++;
+    }
+    cout << "in array: " << (*dictArray)[18437] << endl;
     inStream.close();
 }
 
-bool binarySearchDict(list<string>& dictArray, string word) {
+
+
+bool binarySearchDict(basic_string<char> *dictArray, string word) {
     int low, mid, high;
     cout << "in array: " << dictArray[18437] << endl;
 
-
-
+    return false;
 }
 
 
 string autoDecode(string text) {
-    int lineNum =0;
+    int lineNum = 0;
     int bestWordCount = 1;
     string bestDecodedText;
     string possibleKey;
     string decodedText;
-    set<string> dictArray;
-    loadDict(dictArray);
+
+    char dictArray[21800][81];
+    loadDict(&dictArray);
+    //cout << "IM IN AUTODECODE" << endl;
+    cout << "in array: " << dictArray[18437] << endl;
 
     ifstream nomenclator("TheSecretAgentByJosephConrad.txt");
     for (string line; getline(nomenclator, line);) {
@@ -153,8 +164,8 @@ string autoDecode(string text) {
             int validWordCount = 0;
             stringstream decodedStream(decodedText);
             while (decodedStream >> decodedWord) {
-                if (binarySearchDict(dictArray, decodedWord)) {validWordCount++;}
-                //if (dictLookup(decodedWord)) {validWordCount++;}
+                //if (binarySearchDict(dictArray, decodedWord)) {validWordCount++;}
+                if (dictLookup(decodedWord)) {validWordCount++;}
             }
 
             if (validWordCount >= bestWordCount) {
