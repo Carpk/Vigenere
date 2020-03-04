@@ -113,31 +113,47 @@ string decodeText(string toDecode, string keyword) {
 }
 
 
-void loadDict(char* dictArray[21800][81]) {
+void loadDict(char dictArray[21800][17]) {
     ifstream inStream;
-    char ndictArray[10000][81];
-    int i = 0;
     inStream.open( "dictionary.txt");
     if( !inStream.is_open()) {cout << "Could not find dictionary.txt.  Exiting..." << endl; exit( -1);}
+    int i = 0;
 
-    string dictWord;
+    char dictWord[81];
     while( inStream >> dictWord) {
-        //dictWord.c_str() >> (ndictArray)[i];
-        //(*dictArray)[i] = dictWord;
-        strcpy(ndictArray[i], dictWord.c_str());
-        i++;
+        //if (line.at(line.size()-1) < 97 ) { line.replace(line.size()-1, 1,"" ); }
+        if (strlen(dictWord) >= 3) {
+            for (int j = 0; j < strlen(dictWord); j++ ) {
+                dictWord[j] = tolower(dictWord[j]);
+            }
+            strcpy(dictArray[i], dictWord);
+            i++;
+        }
     }
-    cout << "in array: " << (*dictArray)[18437] << endl;
     inStream.close();
 }
 
 
 
-bool binarySearchDict(basic_string<char> *dictArray, string word) {
+bool binarySearchDict(char dictArray[21800][17], string word) {
     int low, mid, high;
-    cout << "in array: " << dictArray[18437] << endl;
+    bool isFound = false;
+    low = 0;
+    high = 21800-1;
+    while ( low <= high) {
+        mid = (low + high) / 2;
+        if ( word == dictArray[mid]) {
+            isFound = true;
+            break;
+        }
+        else if (word < dictArray[mid]) {
+            high = mid -1;
+        } else {
+            low = mid + 1;
+        }
+    }
 
-    return false;
+    return isFound;
 }
 
 
@@ -148,10 +164,9 @@ string autoDecode(string text) {
     string possibleKey;
     string decodedText;
 
-    char dictArray[21800][81];
-    loadDict(&dictArray);
-    //cout << "IM IN AUTODECODE" << endl;
-    cout << "in array: " << dictArray[18437] << endl;
+    char dictArray[21800][17];
+    loadDict(dictArray);
+
 
     ifstream nomenclator("TheSecretAgentByJosephConrad.txt");
     for (string line; getline(nomenclator, line);) {
@@ -164,8 +179,7 @@ string autoDecode(string text) {
             int validWordCount = 0;
             stringstream decodedStream(decodedText);
             while (decodedStream >> decodedWord) {
-                //if (binarySearchDict(dictArray, decodedWord)) {validWordCount++;}
-                if (dictLookup(decodedWord)) {validWordCount++;}
+                if (binarySearchDict(dictArray, decodedWord)) {validWordCount++;}
             }
 
             if (validWordCount >= bestWordCount) {
@@ -176,9 +190,7 @@ string autoDecode(string text) {
             }
 
         }
-        if (++lineNum % 200 == 0) {cout << lineNum << endl;}
     }
-
 }
 
 
@@ -200,8 +212,6 @@ int main() {
     //returnCharacter =
     //cin.get(output,100);
     menuOption = 4;
-
-   //cout << "A is: " << int('A') << endl;
 
     switch( menuOption) {
         case 1: // Do dictionary lookup of a word and indicate whether or not it was found.
@@ -239,7 +249,7 @@ int main() {
         case 4: // Decode ciphertext given with the assignment
             cout << "Enter the cipherText to be decoded: ";
             toDecode = "uev os hnocax xia lxn";
-            //toDecode = "nol ycwh io ffpllhg uenmvi ihv qmdprlieg: zcfnd lfkt pqwayhz ib ofl.db/dgiaoy13";
+
 
             autoDecode(toDecode);
 
