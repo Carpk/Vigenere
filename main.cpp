@@ -84,18 +84,16 @@ string encodeText(string toEncode, string keyword) {
         if ((toEncode[i] > 64) && (toEncode[i] < 123)) {
             eChar = 97 + ((toEncode[i] + keyword[i % keyLen]) - 194) % 26;
             toEncode[i] = eChar;
-        } else {
-            //toEncode[i] = ' ';
         }
     }
     return toEncode;
 }
 
-string decodeText(string toDecode, string keyword) {
+char* decodeText(char toDecode[81], char keyword[]) {
     int eChar;
-    int keyLen = keyword.size();
-
-    for (unsigned i = 0; i < toDecode.size(); i++) {
+    int keyLen = strlen(keyword);
+    //cout << "decoding: " << toDecode << " with " << keyword << endl;
+    for (unsigned i = 0; i < strlen(toDecode); i++) {
         if ((toDecode[i] > 64) && (toDecode[i] < 123)) {
             int decodeChar = tolower(toDecode[i]);
             int keywordChar = tolower(keyword[i % keyLen]);
@@ -121,11 +119,13 @@ void loadDict(char dictArray[21800][17]) {
 
     char dictWord[81];
     while( inStream >> dictWord) {
-        //if (line.at(line.size()-1) < 97 ) { line.replace(line.size()-1, 1,"" ); }
+        //if (dictWord.at(dictWord.size()-1) < 97 ) { dictWord.replace(dictWord.size()-1, 1,"" ); }
         if (strlen(dictWord) >= 3) {
             for (int j = 0; j < strlen(dictWord); j++ ) {
                 dictWord[j] = tolower(dictWord[j]);
             }
+            dictWord[strlen(dictWord)] = '\0';
+
             strcpy(dictArray[i], dictWord);
             i++;
         }
@@ -135,14 +135,17 @@ void loadDict(char dictArray[21800][17]) {
 
 
 
-bool binarySearchDict(char dictArray[21800][17], string word) {
+bool binarySearchDict(char dictArray[21800][17], char word[81]) {
     int low, mid, high;
     bool isFound = false;
     low = 0;
     high = 21800-1;
     while ( low <= high) {
         mid = (low + high) / 2;
-        if ( word == dictArray[mid]) {
+        if (word == "fun") {cout << word << " and " << dictArray[mid] << endl;}
+        if (strcmp(word, dictArray[mid]) == 0) {
+        //if (word == dictArray[mid]) {
+            cout << "FOUND: " << word << " and " << dictArray[mid] << endl;
             isFound = true;
             break;
         }
@@ -157,36 +160,41 @@ bool binarySearchDict(char dictArray[21800][17], string word) {
 }
 
 
-string autoDecode(string text) {
-    int lineNum = 0;
+string autoDecode(char dictArray[21800][17], const char text[81]) {
     int bestWordCount = 1;
     string bestDecodedText;
-    string possibleKey;
-    string decodedText;
+    char possibleKey[17];
+    string possibleDecodedText;
+    char tempText[81];
 
-    char dictArray[21800][17];
-    loadDict(dictArray);
+    ifstream codeBook("TheSecretAgentByJosephConrad.txt");
+    for (string line; getline(codeBook, line);) {
+        stringstream codeBookStream(line);
 
-
-    ifstream nomenclator("TheSecretAgentByJosephConrad.txt");
-    for (string line; getline(nomenclator, line);) {
-        stringstream lineStream(line);
-
-        while (lineStream >> possibleKey) {
-            //possibleKey = sanitizeText(possibleKey);
-            decodedText = decodeText(text, possibleKey);
-            string decodedWord;
+        while (codeBookStream >> possibleKey) {
+            char decodedWord[17];
             int validWordCount = 0;
-            stringstream decodedStream(decodedText);
+            //possibleKey = sanitizeText(possibleKey);
+            for (int j = 0; j < strlen(possibleKey); j++ ) {
+                possibleKey[j] = tolower(possibleKey[j]);
+            }
+            possibleKey[strlen(possibleKey)] = '\0';
+
+            strcpy(tempText, text);
+            possibleDecodedText = decodeText(tempText, possibleKey);
+
+            stringstream decodedStream(possibleDecodedText);
             while (decodedStream >> decodedWord) {
+                decodedWord[strlen(decodedWord)] = '\0';
+                //cout << decodedWord << endl;
                 if (binarySearchDict(dictArray, decodedWord)) {validWordCount++;}
             }
 
             if (validWordCount >= bestWordCount) {
                 bestWordCount = validWordCount;
-                bestDecodedText = decodedText;
+                bestDecodedText = possibleDecodedText;
                 cout << validWordCount << " words found using keyword: " << possibleKey << " giving:" << endl;
-                cout << decodedText << endl;
+                cout << possibleDecodedText << endl;
             }
 
         }
@@ -198,13 +206,16 @@ string autoDecode(string text) {
 int main() {
     int menuOption = 0;
     char returnCharacter;
+    char dictArray[21800][17];
+    loadDict(dictArray);
     string userInput;
     string toEncode;
-    string toDecode;
+    char toDecode[81] = "uev os hnocax xia lxn\0";
     string decodedText;
     string keyword;
     char output[100]  = "procrastinate";
 
+    //strlen(dictArray);
     dictCount();
 
     //choicesPrompt();
@@ -236,22 +247,20 @@ int main() {
             break;
         case 3: // Decode using user-entered values
             cout << "Enter the cipherText to be decoded: ";
-            toDecode = "spn kxfitrpbrevzsgk cii xenji";
+            //toDecode = "spn kxfitrpbrevzsgk cii xenji";
             cout << "Enter a Vigenere keyword to be tried: ";
             keyword =  "secret";
             cout << endl;
 
-            decodedText = decodeText(toDecode, keyword);
+            //decodedText = decodeText(toDecode, keyword);
             cout << validWordCount(decodedText) << " found using keyword: " << keyword << " giving:" << endl;
 
             cout << decodedText << endl;
             break;
         case 4: // Decode ciphertext given with the assignment
             cout << "Enter the cipherText to be decoded: ";
-            toDecode = "uev os hnocax xia lxn";
 
-
-            autoDecode(toDecode);
+            autoDecode(dictArray, toDecode);
 
             break;
         case 5: // exit program
