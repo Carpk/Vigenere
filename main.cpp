@@ -17,8 +17,9 @@
 using namespace std;
 
 const int DICTSIZE = 21800;
-const int WORDSIZE = 17;
 const int PHRASESIZE = 81;
+const int WORDSIZE = 17;
+
 
 void choicesPrompt() {
     cout << "Choose from the following options: \n"
@@ -30,12 +31,9 @@ void choicesPrompt() {
          << "Your choice: ";
 }
 
-string sanitizeText(string str) {
-    //str.erase(remove(str.begin(), str.end(), '\n'), str.end());
-    return str;
-}
 
-int dictCount() {
+
+void dictCount() {
     int wordCount = 0;
     ifstream dictFile("dictionary.txt");
     for (string line; getline(dictFile, line);) {
@@ -44,7 +42,6 @@ int dictCount() {
     }
     cout << wordCount << " words of size >= 3 were read in from dictionary. "<<' '<<"\n" << endl << endl;
 }
-
 
 
 bool binarySearchDict(char dictArray[21800][17], char word[81]) {
@@ -68,25 +65,26 @@ bool binarySearchDict(char dictArray[21800][17], char word[81]) {
     return isFound;
 }
 
-string encodeText(string toEncode, string keyword) {
+void encodeText(char toEncode[81], char keyword[17]) {
     int eChar;
-    int keyLen = keyword.size();
+    int keyLen = strlen(keyword);
 
-    for (unsigned i = 0; i < toEncode.size(); i++) {
-        //int toEncChar = toEncode[i];
+    for (unsigned i = 0; i < strlen(toEncode); i++) {
         if ((toEncode[i] >= 'a') && (toEncode[i] <= 'z')) { //96, and 123
             eChar = 97 + ((toEncode[i] + keyword[i % keyLen]) - 194) % 26;
             toEncode[i] = eChar;
         }
     }
-    return toEncode;
+    //return toEncode;
 }
 
-void encodeTextReporting(char toEncode[81],char keyword[17]){
-    //toEncode = sanitizeText(output);
+void encodeTextReporting(char toEncode[81], char keyword[17]){
     cout << "Keyword, plainText and ciphertext are:  \n";
-    for (unsigned i = 0; i < strlen(toEncode); i++) {cout << keyword[i % strlen(keyword)];}
-    cout << "\n" << toEncode << "\n" << encodeText(toEncode, keyword) << endl;
+    for (int i = 0; i < strlen(toEncode); i++) {cout << keyword[i % strlen(keyword)];}
+
+    cout << "\n" << toEncode << "\n";
+    encodeText(toEncode, keyword);
+    cout << toEncode << endl;
 }
 
 string decodeText(char toDecode[81], char keyword[]) {
@@ -208,7 +206,7 @@ int main() {
     //cin >> menuOption;
     //returnCharacter =
     //cin.get(output,100);
-    menuOption = 1;
+    menuOption = 2;
 
     switch( menuOption) {
         case 1: // Do dictionary lookup of a word and indicate whether or not it was found.
@@ -222,14 +220,12 @@ int main() {
         case 2: // Encode some text
             cout << "Enter the text to be encoded: ";
             //cin.get(output,100);
-            toEncode = "all generalizations are false";
+            strcpy(output, "all generalizations are false");
             cout << "Enter a keyword for Vigenere encryption: ";
             //cin >> keyword;
             strcpy(keyword , "secret");
-            toEncode = sanitizeText(toEncode);
-            cout << "Keyword, plainText and ciphertext are:  \n";
-            for (unsigned i = 0; i < toEncode.size(); i++) {cout << keyword[i%6];}
-            cout << endl << toEncode << "\n" << encodeText(toEncode, keyword) << endl;
+
+            encodeTextReporting(output, keyword);
             break;
         case 3: // Decode using user-entered values
             cout << "Enter the cipherText to be decoded: ";
@@ -297,7 +293,10 @@ int validWordCount(string text) {
 }
 
 
-
+string sanitizeText(string str) {
+    //str.erase(remove(str.begin(), str.end(), '\n'), str.end());
+    return str;
+}
 
 
  //cout << "j: " << int('j') << " r: " << int('r') << " n: " << int('n') << " z: " << int('z') << endl;
