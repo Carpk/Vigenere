@@ -16,6 +16,9 @@
 
 using namespace std;
 
+const int DICTSIZE = 21800;
+const int WORDSIZE = 17;
+const int PHRASESIZE = 81;
 
 void choicesPrompt() {
     cout << "Choose from the following options: \n"
@@ -28,12 +31,7 @@ void choicesPrompt() {
 }
 
 string sanitizeText(string str) {
-    for (unsigned i = 0; i < str.size(); i++) {
-        if ((str[i] < 97) | (str[i] > 122)) {
-            str[i] = ' ';
-        }
-    }
-    str.erase(remove(str.begin(), str.end(), '\n'), str.end());
+    //str.erase(remove(str.begin(), str.end(), '\n'), str.end());
     return str;
 }
 
@@ -47,32 +45,27 @@ int dictCount() {
     cout << wordCount << " words of size >= 3 were read in from dictionary. "<<' '<<"\n" << endl << endl;
 }
 
-bool dictLookup(string str) {
+
+
+bool binarySearchDict(char dictArray[21800][17], char word[81]) {
+    int low, mid, high;
     bool isFound = false;
-    ifstream dictFile("dictionary.txt");
-    //str.resize(remove_if(str.begin(), str.end(),[](char x){return !isalnum(x) && !isspace(x);})-str.begin());
-    if (str.at(0) < 97 ) { str.replace(0, 1,"" ); }
-    if (str.at(str.size()-1) < 97 ) { str.replace(str.size()-1, 1,"" ); }
-    string line;
-
-    for (line; getline(dictFile, line);) {
-        line.erase(line.size() - 1);
-        if (strcmp(line.c_str(), str.c_str()) == 0 ) {isFound = true; break;}
-    }
-    return isFound;
-}
-
-int validWordCount(string text) {
-    string word;
-    int validCount = 0;
-    stringstream iss(text);
-    while (iss >> word) {
-        if (dictLookup(word)) {
-            validCount++;
+    low = 0;
+    high = 21800-1;
+    while ( low <= high) {
+        mid = (low + high) / 2;
+        if (strcmp(word, dictArray[mid]) == 0) {
+            isFound = true;
+            break;
+        }
+        else if (strcmp(word, dictArray[mid]) < 0){
+            high = mid -1;
+        } else {
+            low = mid + 1;
         }
     }
 
-    return validCount;
+    return isFound;
 }
 
 string encodeText(string toEncode, string keyword) {
@@ -80,8 +73,8 @@ string encodeText(string toEncode, string keyword) {
     int keyLen = keyword.size();
 
     for (unsigned i = 0; i < toEncode.size(); i++) {
-        int toEncChar = toEncode[i];
-        if ((toEncode[i] > 64) && (toEncode[i] < 123)) {
+        //int toEncChar = toEncode[i];
+        if ((toEncode[i] >= 'a') && (toEncode[i] <= 'z')) { //96, and 123
             eChar = 97 + ((toEncode[i] + keyword[i % keyLen]) - 194) % 26;
             toEncode[i] = eChar;
         }
@@ -89,7 +82,14 @@ string encodeText(string toEncode, string keyword) {
     return toEncode;
 }
 
-char* decodeText(char toDecode[81], char keyword[]) {
+void encodeTextReporting(char toEncode[81],char keyword[17]){
+    //toEncode = sanitizeText(output);
+    cout << "Keyword, plainText and ciphertext are:  \n";
+    for (unsigned i = 0; i < strlen(toEncode); i++) {cout << keyword[i % strlen(keyword)];}
+    cout << "\n" << toEncode << "\n" << encodeText(toEncode, keyword) << endl;
+}
+
+string decodeText(char toDecode[81], char keyword[]) {
     int eChar;
     int keyLen = strlen(keyword);
     //cout << "decoding: " << toDecode << " with " << keyword << endl;
@@ -101,7 +101,7 @@ char* decodeText(char toDecode[81], char keyword[]) {
             if (keywordChar > decodeChar) {
                 eChar = 'z' - keywordChar + decodeChar + 1;
             } else {
-                eChar = 97 + (decodeChar - keywordChar);
+                eChar = 'a' + (decodeChar - keywordChar);
             }
 
             toDecode[i] = eChar;
@@ -110,6 +110,18 @@ char* decodeText(char toDecode[81], char keyword[]) {
     return toDecode;
 }
 
+void decodeTextReporting(char dictArray[DICTSIZE][WORDSIZE], char toDecode[], char keyword[]) {
+    int validWordCount = 0;
+    char decodedWord[17];
+    //char decodedText[81] = decodeText(toDecode, keyword);
+    stringstream decodedStream(decodeText(toDecode, keyword));
+    while (decodedStream >> decodedWord) {
+        decodedWord[strlen(decodedWord)] = '\0';
+        if (binarySearchDict(dictArray, decodedWord)) {validWordCount++;}
+    }
+    cout << validWordCount << " words found using keyword: " << keyword << " giving:" << endl;
+    cout << decodeText(toDecode, keyword) << endl;
+}
 
 void loadDict(char dictArray[21800][17]) {
     ifstream inStream;
@@ -131,32 +143,6 @@ void loadDict(char dictArray[21800][17]) {
         }
     }
     inStream.close();
-}
-
-
-
-bool binarySearchDict(char dictArray[21800][17], char word[81]) {
-    int low, mid, high;
-    bool isFound = false;
-    low = 0;
-    high = 21800-1;
-    while ( low <= high) {
-        mid = (low + high) / 2;
-        if (word == "fun") {cout << word << " and " << dictArray[mid] << endl;}
-        if (strcmp(word, dictArray[mid]) == 0) {
-        //if (word == dictArray[mid]) {
-            cout << "FOUND: " << word << " and " << dictArray[mid] << endl;
-            isFound = true;
-            break;
-        }
-        else if (word < dictArray[mid]) {
-            high = mid -1;
-        } else {
-            low = mid + 1;
-        }
-    }
-
-    return isFound;
 }
 
 
@@ -212,8 +198,8 @@ int main() {
     string toEncode;
     char toDecode[81] = "uev os hnocax xia lxn\0";
     string decodedText;
-    string keyword;
-    char output[100]  = "procrastinate";
+    char keyword[17];
+    char output[100];
 
     //strlen(dictArray);
     dictCount();
@@ -222,16 +208,16 @@ int main() {
     //cin >> menuOption;
     //returnCharacter =
     //cin.get(output,100);
-    menuOption = 4;
+    menuOption = 1;
 
     switch( menuOption) {
         case 1: // Do dictionary lookup of a word and indicate whether or not it was found.
             cout << "Enter a word to be looked up in dictionary: ";
-            //cin >> userInput;
-            //output[]  = "procrastinate"; // 13
-            //cout << strlen(userInput.c_str());
-            //userInput = "kats";
-            cout << userInput << (dictLookup(output)? " IS ":" is NOT ")  << "in the dictionary." << endl;
+            //cin.get(output,100);
+            //strcpy(output, "kats");
+            strcpy(output, "procrastinate");
+            cout << output << (binarySearchDict(dictArray,output)? " IS ":" is NOT ")  << "in the dictionary." << endl;
+            //cout << output << (dictLookup(output)? " IS ":" is NOT ")  << "in the dictionary." << endl;
             break;
         case 2: // Encode some text
             cout << "Enter the text to be encoded: ";
@@ -239,7 +225,7 @@ int main() {
             toEncode = "all generalizations are false";
             cout << "Enter a keyword for Vigenere encryption: ";
             //cin >> keyword;
-            keyword =  "secret";
+            strcpy(keyword , "secret");
             toEncode = sanitizeText(toEncode);
             cout << "Keyword, plainText and ciphertext are:  \n";
             for (unsigned i = 0; i < toEncode.size(); i++) {cout << keyword[i%6];}
@@ -249,13 +235,10 @@ int main() {
             cout << "Enter the cipherText to be decoded: ";
             //toDecode = "spn kxfitrpbrevzsgk cii xenji";
             cout << "Enter a Vigenere keyword to be tried: ";
-            keyword =  "secret";
+            strcpy(keyword , "secret");
             cout << endl;
 
-            //decodedText = decodeText(toDecode, keyword);
-            cout << validWordCount(decodedText) << " found using keyword: " << keyword << " giving:" << endl;
-
-            cout << decodedText << endl;
+            decodeTextReporting(dictArray, output, keyword);
             break;
         case 4: // Decode ciphertext given with the assignment
             cout << "Enter the cipherText to be decoded: ";
@@ -282,6 +265,40 @@ int main() {
 
 
 /*
+ *
+ *
+int validWordCount(string text) {
+    string word;
+    int validCount = 0;
+    stringstream iss(text);
+    while (iss >> word) {
+        if (dictLookup(word)) {
+            validCount++;
+        }
+    }
+
+    return validCount;
+}
+
+
+ bool dictLookup(string str) {
+    bool isFound = false;
+    ifstream dictFile("dictionary.txt");
+    //str.resize(remove_if(str.begin(), str.end(),[](char x){return !isalnum(x) && !isspace(x);})-str.begin());
+    if (str.at(0) < 97 ) { str.replace(0, 1,"" ); }
+    if (str.at(str.size()-1) < 97 ) { str.replace(str.size()-1, 1,"" ); }
+    string line;
+
+    for (line; getline(dictFile, line);) {
+        line.erase(line.size() - 1);
+        if (strcmp(line.c_str(), str.c_str()) == 0 ) {isFound = true; break;}
+    }
+    return isFound;
+}
+
+
+
+
 
  //cout << "j: " << int('j') << " r: " << int('r') << " n: " << int('n') << " z: " << int('z') << endl;
 
